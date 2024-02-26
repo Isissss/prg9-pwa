@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Navbar from "./components/Navbar";
+import ConnectionContext from "./context/ConnectionContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,10 +18,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-      <link rel="manifest" href="/manifest.webmanifest"/>
+      <head> 
+        <link rel="manifest" href="/manifest.webmanifest" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={"bg-white text-black" + inter}>
+        <ConnectionContext>
+          <Navbar />
+          {children}
+        </ConnectionContext>
+      </body>
     </html>
   );
 }
