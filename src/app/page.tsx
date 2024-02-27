@@ -1,13 +1,15 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { getCMGTProjects } from "./lib/projects";
+import { getCMGTProjects } from "../lib/projects";
 import localForage from "localforage";
+import Link from "next/link";
 
-type Project = {
+export type ProjectT = {
   project: {
-    id: number;
+    id: string | number;
     title: string;
+    slug: string;
     header_image: string;
     image: string;
     tagline: string;
@@ -29,22 +31,23 @@ type Project = {
 
 export default function Home() {
 
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectT[]>([]);
 
 
   useEffect(() => {
     getCMGTProjects().then((data) => {
-      setProjects(data);
+      const sortedProjects = data.sort((a: ProjectT, b: ProjectT) => {
+        return parseInt(a.project.id as string) > parseInt(b.project.id as string) ? -1 : 1;  
+      });
 
-      localForage.clear().then(function () {
-        data.forEach((project) => {
-          localForage.setItem(project.project.id.toString(), project);
-        }
-        );
-      }
-      );
+      setProjects(sortedProjects);
+
+   
+        data.forEach((project: ProjectT) => {
+          localForage.setItem(project.project.slug, project)} 
+        ); 
     }
-    );
+    ) 
 
 
   }, []);
@@ -54,13 +57,12 @@ export default function Home() {
       {projects.map(({ project, links }) => (
         <div key={project.id}>
           {project.id}
+          <Link passHref href={`/project/${project.slug}`}  > Hello </Link> <Link href="/hello">dwadaw</Link>
           <h2>{project.title}</h2>
           <p>{project.tagline}</p>
-          <Image
+          <img 
             src={project.header_image}
-            alt={project.title}
-            width={200}
-            height={100}
+            alt={project.title} 
           />
           <p>{project.description}</p>
           <p>{project.author}</p>

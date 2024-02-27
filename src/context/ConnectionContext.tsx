@@ -42,8 +42,11 @@ function ConnectionContext({ children }: { children: React.ReactNode }) {
   
 
 
-  useEffect(() => {
-    registerServiceWorker(); 
+  useEffect(() => { 
+    if ('navigator' in window && 'serviceWorker' in navigator) {
+      registerServiceWorker(); 
+      setIsOnline(navigator.onLine);
+    }
 
      getTags().then((data) => { 
       setTags(data);

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar";
-import ConnectionContext from "./context/ConnectionContext";
+import Navbar from "../components/Navbar";
+import ConnectionContext from "../context/ConnectionContext";
+import clsx from "clsx";
+import Footer from "@/components/Footer";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Poppins({ weight: "400", subsets: ["latin"]});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,19 +15,26 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  modal
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <head> 
+      <head>
         <link rel="manifest" href="/manifest.webmanifest" />
       </head>
-      <body className={"bg-white text-black" + inter}>
+      <body className={clsx(inter, "bg-[#eff0eb] flex flex-col")} >
         <ConnectionContext>
           <Navbar />
+          <main className="container flex-1 flex-grow">
           {children}
+          </main>
+          <Footer />
         </ConnectionContext>
+        {modal}
+        <div id="modal-root" />
       </body>
     </html>
   );
