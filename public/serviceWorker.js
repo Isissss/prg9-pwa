@@ -7,9 +7,7 @@ const VERSION = "v2";
 
 const APPSHELL_FILES = [
   "/",
-  "/project/natuurdekkers",
-  "/hello",  
-  "_next/static/chunks/app/project/[slug]/page.js"]
+  "/hello"]
 
 /**
  * Deletes all old cache files
@@ -29,6 +27,7 @@ const handleFetchRequest = (e) => {
       if (cachedResponse) {
         return cachedResponse;
       }
+
       try {
         const networkResponse = await fetch(e.request);
         if (networkResponse.ok) {
@@ -37,7 +36,7 @@ const handleFetchRequest = (e) => {
         }
         return networkResponse;
       } catch (error) {
-        return Response.error();
+        return await caches.match("/offline/project")
       }
     })(),
   );
@@ -52,13 +51,13 @@ const cacheProjectImages = async () => {
     const projects = data.data
 
     const images = projects?.map(({ project }) => {
-      let images = []
-      images.push(project.header_image)
+      let images = [] 
       project?.screenshots?.forEach(screenshot => images.push(screenshot))
-      return images
-    }) ?? []
+      return images 
+    }) ?? []  
+    console.log(images.flat())
 
-    await cache.addAll(images)
+    await cache.addAll(images.flat())
   } catch (e) {
     console.error("Failed to cache project images", e);
   }
@@ -141,6 +140,26 @@ const handleProjectsFetchRequest = (e) => {
   );
 };
 
+function extractLinks(htmlString) {
+  const regexPattern = /(?:<script[^>]+src|<link[^>]+href)="([^"]+)"/g;
+  let matches;
+  const links = [];
+
+  while ((matches = regexPattern.exec(htmlString)) !== null) {
+      // This is necessary to avoid infinite loops with zero-width matches
+      if (matches.index === regexPattern.lastIndex) {
+          regexPattern.lastIndex++;
+      }
+      
+      // The first capturing group is at index 1
+      links.push(matches[1]);
+  }
+
+  return links;
+}
+
+
+
 self.addEventListener("fetch", (e) => {
 
   const url = e.request.url;
@@ -159,27 +178,32 @@ self.addEventListener("fetch", (e) => {
 
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(deleteOldCaches());
-});
+async function cacheOfflinePage() { 
+  const cache = await caches.open("appshell" + VERSION);
+  const offlinePage = new Request("/offline/project");
+  const offlinePageResponse = await fetch(offlinePage);  
+
+  if (!offlinePageResponse.ok) {
+    return;
+  }
+
+  const links = extractLinks(await offlinePageResponse.clone().text());  
+  const uniqueLinks = [...new Set(links)];  
+
+  await cache.addAll(uniqueLinks);
+  await cache.put(offlinePage, offlinePageResponse);
+} 
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
-      try {
-        const cache = await caches.open("appshell" + VERSION);
-        await cache.addAll(APPSHELL_FILES);
-      } catch (e) {
-        console.error("Failed to cache app shell", e);
-      }
-    })(),
-  );
+      const cache = await caches.open("appshell" + VERSION);
+ 
+      await cache.addAll(APPSHELL_FILES).catch((e) => console.error("Failed to cache links", e));
 
-  (async () => {
-    try {
-      await cacheProjectImages()
-    } catch (e) {
-      console.error("Failed to cache project images", e);
-    }
-  })()
+    })(),
+
+    cacheProjectImages(),
+    cacheOfflinePage()
+  );
 });

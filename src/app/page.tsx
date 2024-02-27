@@ -15,6 +15,10 @@ export type ProjectT = {
     tagline: string;
     description: string;
     author: string;
+    tags: {
+      id: number;
+      name: string;
+    }[];
     youtube: string | null;
     screenshots: string[];
     spotlight: boolean;
@@ -57,7 +61,7 @@ export default function Home() {
       {projects.map(({ project, links }) => (
         <div key={project.id}>
           {project.id}
-          <Link passHref href={`/project/${project.slug}`}  > Hello </Link> <Link href="/hello">dwadaw</Link>
+          <a  href={`/project/${project.slug}`} className="text-red-400" > {project.title} </a>   
           <h2>{project.title}</h2>
           <p>{project.tagline}</p>
           <img 

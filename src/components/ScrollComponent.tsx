@@ -9,6 +9,7 @@ function ScrollScaleComponent() {
       const scrollY = window.scrollY;
       const height = document.documentElement.scrollHeight - window.innerHeight;
       const scrollYProgress = scrollY / height; 
+      console.log(scrollYProgress);
       setScaleX(scrollYProgress * 100);
     };
 
@@ -20,9 +21,7 @@ function ScrollScaleComponent() {
   }, []);
 
   return (
-    <div ref={ref} style={{ width: `${scaleX}%` }} className='fixed inset-0 z-30 bg-[#d3104c] w-full h-3'>
-     
-    </div>
+    <div ref={ref} style={{ width: `${scaleX}%` }} className='fixed inset-0 z-30 bg-[#d3104c] w-full h-3' > </div>
   );
 }
 
