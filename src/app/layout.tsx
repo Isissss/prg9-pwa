@@ -5,9 +5,9 @@ import Navbar from "../components/Navbar";
 import ConnectionContext from "../context/ConnectionContext";
 import clsx from "clsx";
 import Footer from "@/components/Footer";
-import { StateButton } from "@/components/StateButtons";
+import { StateBanner } from "@/components/StateBanner";
 
-const inter = Poppins({ weight: "400", subsets: ["latin"]});
+const inter = Poppins({ weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -24,14 +24,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="manifest" href="/manifest.webmanifest" /> 
+        <link rel="manifest" href="/manifest.webmanifest" />
       </head>
       <body className={clsx("bg-[#eff0eb] flex flex-col text-[#4a4a4a]", inter.className)} >
         <ConnectionContext>
           <Navbar />
-          <StateButton />
+          <StateBanner />
           <main className="container flex-1 flex-grow py-9">
-          {children}
+            {children}
           </main>
           <Footer />
         </ConnectionContext>

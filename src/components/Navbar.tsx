@@ -1,5 +1,5 @@
 import React from 'react';   
-import { StateButton } from './StateButtons';
+import { StateButton } from './StateBanner';
 import Link from 'next/link';
 import Image from 'next/image';
  

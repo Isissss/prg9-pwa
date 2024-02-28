@@ -12,7 +12,7 @@ const APPSHELL_FILES = [
  self.addEventListener("activate",  (event) => {
   event.waitUntil(
     (async () => {
-      const cacheKeepList = [];
+      const cacheKeepList = ["appshell" + VERSION];
       const keyList = await caches.keys();
       const cachesToDelete = keyList.filter((key) => !cacheKeepList.includes(key));
       await Promise.all(cachesToDelete.map(deleteCache));
