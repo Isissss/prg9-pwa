@@ -7,22 +7,23 @@ const VERSION = "v2";
 
 const APPSHELL_FILES = [
   "/",
-  "/hello"]
+  "/logo.svg"]
+ 
+ self.addEventListener("activate",  (event) => {
+  event.waitUntil(
+    (async () => {
+      const cacheKeepList = [];
+      const keyList = await caches.keys();
+      const cachesToDelete = keyList.filter((key) => !cacheKeepList.includes(key));
+      await Promise.all(cachesToDelete.map(deleteCache));
+    })()
+  );
+});
 
-/**
- * Deletes all old cache files
- * @returns {Promise<void>}
- */
-const deleteOldCaches = async () => {
-  const cacheKeepList = [];
-  const keyList = await caches.keys();
-  const cachesToDelete = keyList.filter((key) => !cacheKeepList.includes(key));
-  await Promise.all(cachesToDelete.map(deleteCache));
-};
 
 const handleFetchRequest = (e) => {
   e.respondWith(
-    (async () => {
+    (async () => { 
       const cachedResponse = await caches.match(e.request);
       if (cachedResponse) {
         return cachedResponse;
@@ -30,38 +31,49 @@ const handleFetchRequest = (e) => {
 
       try {
         const networkResponse = await fetch(e.request);
-        if (networkResponse.ok) {
+        if (networkResponse.ok) {  
           const cache = await caches.open("appshell" + VERSION);
           cache.put(e.request, networkResponse.clone());
         }
         return networkResponse;
       } catch (error) {
-        return await caches.match("/offline/project")
+
+        // if the request is for a project, return the offline project page
+        if (e.request.url.includes("/project/")) {
+          console.log("Caching project page", e.request.url);
+          return await caches.match("/offline/project")
+        } 
+
+        return new Response("Failed to fetch", { 
+          status: 500, 
+          statusText: "Failed to fetch" 
+        });
       }
     })(),
   );
 }
 
-const cacheProjectImages = async () => {
-  // open cache with project-images 
-  try {
-    const cache = await caches.open("project-images");
-    const response = await fetch('https://cmgt.hr.nl/api/projects')
-    const data = await response.json()
-    const projects = data.data
+// const cacheProjectImages = async () => {
+//   // open cache with project-images 
+//   try {
+//     const cache = await caches.open("project-images");
+//     const response = await fetch('https://cmgt.hr.nl/api/projects')
+//     const data = await response.json()
+//     const projects = data.data
 
-    const images = projects?.map(({ project }) => {
-      let images = [] 
-      project?.screenshots?.forEach(screenshot => images.push(screenshot))
-      return images 
-    }) ?? []  
-    console.log(images.flat())
+//     const images = projects?.map(({ project }) => {
+//       let images = [] 
+//       project?.screenshots?.forEach(screenshot => images.push(screenshot))
+//       //project?.screenshots?.forEach(screenshot => images.push(new Request(screenshot, { headers: { 'Access-Control-Allow-Origin': 'https://cmgt.hr.nl' } })))
+//       return images 
+//     }) ?? []  
+//     console.log(images.flat())
 
-    await cache.addAll(images.flat())
-  } catch (e) {
-    console.error("Failed to cache project images", e);
-  }
-}
+//     await cache.addAll(images.flat())
+//   } catch (e) {
+//     console.error("Failed to cache project images", e);
+//   }
+// }
 
 const handleProjectImageFetchRequest = (e) => {
   e.respondWith(
@@ -90,8 +102,7 @@ const handleProjectFetchRequest = (e) => {
     fetch(e.request).then((response) => {
       return response;
     }).catch((err) => {
-      console.log("Failed to fetch project data, trying to retrieve from localForage");
-
+      console.log("Failed to fetch project data, trying to retrieve from localForage"); 
 
       const url = new URL(e.request.url);
       const projectName = url.pathname.split("/").pop();
@@ -140,6 +151,7 @@ const handleProjectsFetchRequest = (e) => {
   );
 };
 
+
 function extractLinks(htmlString) {
   const regexPattern = /(?:<script[^>]+src|<link[^>]+href)="([^"]+)"/g;
   let matches;
@@ -164,35 +176,40 @@ self.addEventListener("fetch", (e) => {
 
   const url = e.request.url;
 
-  // if url contains /projects, fetch differently 
+  // if url contains /projects, fetch network first and use indexedDB as fallback
   if (url === "https://cmgt.hr.nl/api/projects") {
     handleProjectsFetchRequest(e);
-    // project/project-name
+
+    // pif url contains /projects/[PROJECT] get project from indexedDB or fetch from network
   } else if (url.includes("https://cmgt.hr.nl/api/projects")) {
     handleProjectFetchRequest(e);
   }
+  // if a project image is requested, get image from the cache
   else if (url.includes("https://cmgt.hr.nl/storage/uploads")) {
     handleProjectImageFetchRequest(e);
   }
+  // else, network first request
   else handleFetchRequest(e);
 
 });
 
-async function cacheOfflinePage() { 
+async function cacheCompleteNextPage(page) { 
   const cache = await caches.open("appshell" + VERSION);
-  const offlinePage = new Request("/offline/project");
-  const offlinePageResponse = await fetch(offlinePage);  
+  const pageReq = new Request(page); 
+  const pageResponse = await fetch(pageReq);  
+  console.log("Caching page", pageResponse);
 
-  if (!offlinePageResponse.ok) {
+  if (!pageResponse.ok) {
     return;
   }
 
-  const links = extractLinks(await offlinePageResponse.clone().text());  
+  const links = extractLinks(await pageResponse.clone().text());  
   const uniqueLinks = [...new Set(links)];  
 
   await cache.addAll(uniqueLinks);
-  await cache.put(offlinePage, offlinePageResponse);
+  await cache.put(pageReq, pageResponse);
 } 
+ 
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -203,7 +220,8 @@ self.addEventListener("install", (event) => {
 
     })(),
 
-    cacheProjectImages(),
-    cacheOfflinePage()
+    //cacheProjectImages()
+    cacheCompleteNextPage("/offline/project"),
+    cacheCompleteNextPage("/"),
   );
 });

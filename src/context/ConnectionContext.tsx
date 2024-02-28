@@ -1,7 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react"; 
-import { getCMGTProjects } from "../lib/projects";
-import { getTags } from "../lib/tags";
+import { createContext, useContext, useEffect, useState } from "react";  
 
 const connectionContext = createContext({ isOnline: true } as ConnectionContextProps);
 
@@ -18,8 +16,7 @@ type ConnectionContextProps = {
  
  
 function ConnectionContext({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState(true);
-  const [tags, setTags] = useState<string[]>([]); 
+  const [isOnline, setIsOnline] = useState(true); 
 
   const registerServiceWorker = async () => {
     if (window && "serviceWorker" in navigator) {
@@ -38,20 +35,12 @@ function ConnectionContext({ children }: { children: React.ReactNode }) {
       }
     }
   };
-
-  
-
-
+ 
   useEffect(() => { 
     if ('navigator' in window && 'serviceWorker' in navigator) {
       registerServiceWorker(); 
       setIsOnline(navigator.onLine);
-    }
-
-     getTags().then((data) => { 
-      setTags(data);
-    });
-
+    } 
   }, []);
 
   useEffect(() => {

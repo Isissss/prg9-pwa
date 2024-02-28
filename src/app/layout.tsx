@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import ConnectionContext from "../context/ConnectionContext";
 import clsx from "clsx";
 import Footer from "@/components/Footer";
+import { StateButton } from "@/components/StateButtons";
 
 const inter = Poppins({ weight: "400", subsets: ["latin"]});
 
@@ -25,10 +26,11 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.webmanifest" /> 
       </head>
-      <body className={clsx(inter, "bg-[#eff0eb] flex flex-col")} >
+      <body className={clsx("bg-[#eff0eb] flex flex-col text-[#4a4a4a]", inter.className)} >
         <ConnectionContext>
           <Navbar />
-          <main className="container flex-1 flex-grow">
+          <StateButton />
+          <main className="container flex-1 flex-grow py-9">
           {children}
           </main>
           <Footer />

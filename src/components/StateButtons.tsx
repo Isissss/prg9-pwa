@@ -1,24 +1,19 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import { useConnection } from '../context/ConnectionContext';
 
 
-export function StateButton() {
+export function StateButton({ className }: { className?: string }) {
     const { isOnline } = useConnection()
+    const [dismissed, setDismissed] = useState(false);
 
-    return isOnline  ? (
-        <div
-            className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background text-accent-foreground h-9 px-3 border-green-600 pulse translate-y-[-2px] duration-300 ease-in-out rounded-full "
-        >
-            <span className="h-2 w-2 bg-green-600 rounded-full animate-pulse mr-2" />
-            Online
-        </div>
-    ) : (
-        <div className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border bg-background bg-accent text-accent-foreground h-9 px-3 border-gray-300 pulse translate-y-[-2px] duration-300 ease-in-out rounded-full"
-        >
-            <span className="h-2 w-2 bg-gray-300 rounded-full animate-pulse mr-2" />
-            Offline
-        </div> 
-    );
+    return <>
+        {(!isOnline && !dismissed) && (
+            <div className="w-full items-center text-center bg-white py-2">
+                Currently in Offline Mode. Please connect to the internet to get the latest updates and use all features.
+                <button onClick={() => setDismissed(true)} className="bg-cmgt-red text-white px-3 py-1 rounded-full ml-3">X</button>
+            </div>
+        )}
+    </>
 }
 
