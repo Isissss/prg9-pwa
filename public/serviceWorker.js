@@ -27,7 +27,7 @@ const handleFetchRequest = (e) => {
       const cachedResponse = await caches.match(e.request);
       if (cachedResponse) {
         return cachedResponse;
-      }
+      } 
 
       try {
         const networkResponse = await fetch(e.request);
@@ -70,7 +70,7 @@ const cacheProjectImages = async () => {
     }) ?? []
     console.log(images.flat())
 
-    await cache.addAll(images.flat())
+    await cache.addAll(images.flat()).then(() => console.log("Cached project images"))
   } catch (e) {
     console.error("Failed to cache project images", e);
   }
@@ -87,7 +87,7 @@ const handleProjectImageFetchRequest = (e) => {
         }
 
         const response = await fetch(e.request);
-        const cache = await caches.open("project-images");
+        const cache = await caches.open("project-images" + VERSION);
         cache.put("/api/img?url=" + e.request.url, response.clone());
         return response;
       } catch (e) {
@@ -204,10 +204,10 @@ async function cacheCompleteNextPage(page) {
     return;
   }
 
-  const links = extractLinks(await pageResponse.clone().text());
-  const uniqueLinks = [...new Set(links)];
+  // const links = extractLinks(await pageResponse.clone().text());
+  // const uniqueLinks = [...new Set(links)];
 
-  await cache.addAll(uniqueLinks);
+  // await cache.addAll(uniqueLinks);
   await cache.put(pageReq, pageResponse);
 }
 
