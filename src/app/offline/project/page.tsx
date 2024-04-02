@@ -6,7 +6,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { ProjectT } from "@/app/page";
 import Image from "next/image";  
 import ProjectPage from "@/components/ProjectPage";
-import ScrollScaleComponent from "@/components/ScrollComponent";
+import ScrollScaleComponent from "@/components/ScrollProgessComponent";
 
 export default function Page() {
     const [project, setProject] = useState<ProjectT | null>(null);

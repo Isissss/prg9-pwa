@@ -6,7 +6,7 @@ import { getProject } from '@/lib/projects';
 import { useEffect, useState } from 'react';
 import { ProjectT } from '@/app/page';
 import Image from 'next/image';
-import ScrollScaleComponent from '@/components/ScrollComponent';
+import ScrollScaleComponent from '@/components/ScrollProgessComponent';
 import ProjectPage from '@/components/ProjectPage';
 
 export default function PhotoModal({

@@ -8,11 +8,11 @@ const VERSION = "v2";
 const APPSHELL_FILES = [
   "/",
   "/logo.svg"]
- 
- self.addEventListener("activate",  (event) => {
+
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      const cacheKeepList = ["appshell" + VERSION];
+      const cacheKeepList = ["appshell" + VERSION, "project-images" + VERSION];
       const keyList = await caches.keys();
       const cachesToDelete = keyList.filter((key) => !cacheKeepList.includes(key));
       await Promise.all(cachesToDelete.map(deleteCache));
@@ -23,7 +23,7 @@ const APPSHELL_FILES = [
 
 const handleFetchRequest = (e) => {
   e.respondWith(
-    (async () => { 
+    (async () => {
       const cachedResponse = await caches.match(e.request);
       if (cachedResponse) {
         return cachedResponse;
@@ -31,7 +31,7 @@ const handleFetchRequest = (e) => {
 
       try {
         const networkResponse = await fetch(e.request);
-        if (networkResponse.ok) {  
+        if (networkResponse.ok) {
           const cache = await caches.open("appshell" + VERSION);
           cache.put(e.request, networkResponse.clone());
         }
@@ -42,52 +42,53 @@ const handleFetchRequest = (e) => {
         if (e.request.url.includes("/project/")) {
           console.log("Caching project page", e.request.url);
           return await caches.match("/offline/project")
-        } 
+        }
 
-        return new Response("Failed to fetch", { 
-          status: 500, 
-          statusText: "Failed to fetch" 
+        return new Response("Failed to fetch", {
+          status: 500,
+          statusText: "Failed to fetch"
         });
       }
     })(),
   );
 }
 
-// const cacheProjectImages = async () => {
-//   // open cache with project-images 
-//   try {
-//     const cache = await caches.open("project-images");
-//     const response = await fetch('https://cmgt.hr.nl/api/projects')
-//     const data = await response.json()
-//     const projects = data.data
+const cacheProjectImages = async () => {
+  // open cache with project-images 
+  try {
+    const cache = await caches.open("project-images" + VERSION);
+    const response = await fetch('https://cmgt.hr.nl/api/projects')
+    const data = await response.json()
+    const projects = data.data
 
-//     const images = projects?.map(({ project }) => {
-//       let images = [] 
-//       project?.screenshots?.forEach(screenshot => images.push(screenshot))
-//       //project?.screenshots?.forEach(screenshot => images.push(new Request(screenshot, { headers: { 'Access-Control-Allow-Origin': 'https://cmgt.hr.nl' } })))
-//       return images 
-//     }) ?? []  
-//     console.log(images.flat())
+    const images = projects?.map(({ project }) => {
+      let images = [] 
+     
+     // proxy the images through the backend because of CORS
+     project?.screenshots?.forEach(screenshot => images.push(new Request("/api/img?url=" + screenshot)))
+      return images 
+    }) ?? []  
+    console.log(images.flat())
 
-//     await cache.addAll(images.flat())
-//   } catch (e) {
-//     console.error("Failed to cache project images", e);
-//   }
-// }
+    await cache.addAll(images.flat())
+  } catch (e) {
+    console.error("Failed to cache project images", e);
+  }
+}
 
 const handleProjectImageFetchRequest = (e) => {
   e.respondWith(
     (async () => {
       try {
         // get cached response
-        const cachedResult = await caches.match(e.request);
+        const cachedResult = await caches.match("/api/img?url=" + e.request.url);
         if (cachedResult) {
           return cachedResult;
         }
 
         const response = await fetch(e.request);
         const cache = await caches.open("project-images");
-        cache.put(e.request, response.clone());
+        cache.put("/api/img?url=" + e.request.url, response.clone());
         return response;
       } catch (e) {
         console.error("Failed to cache project images", e);
@@ -102,7 +103,7 @@ const handleProjectFetchRequest = (e) => {
     fetch(e.request).then((response) => {
       return response;
     }).catch((err) => {
-      console.log("Failed to fetch project data, trying to retrieve from localForage"); 
+      console.log("Failed to fetch project data, trying to retrieve from localForage");
 
       const url = new URL(e.request.url);
       const projectName = url.pathname.split("/").pop();
@@ -158,18 +159,17 @@ function extractLinks(htmlString) {
   const links = [];
 
   while ((matches = regexPattern.exec(htmlString)) !== null) {
-      // This is necessary to avoid infinite loops with zero-width matches
-      if (matches.index === regexPattern.lastIndex) {
-          regexPattern.lastIndex++;
-      }
-      
-      // The first capturing group is at index 1
-      links.push(matches[1]);
+    // This is necessary to avoid infinite loops with zero-width matches
+    if (matches.index === regexPattern.lastIndex) {
+      regexPattern.lastIndex++;
+    }
+
+    // The first capturing group is at index 1
+    links.push(matches[1]);
   }
 
   return links;
 }
-
 
 
 self.addEventListener("fetch", (e) => {
@@ -193,35 +193,34 @@ self.addEventListener("fetch", (e) => {
 
 });
 
-async function cacheCompleteNextPage(page) { 
+async function cacheCompleteNextPage(page) {
   const cache = await caches.open("appshell" + VERSION);
-  const pageReq = new Request(page); 
-  const pageResponse = await fetch(pageReq);  
+  const pageReq = new Request(page);
+  const pageResponse = await fetch(pageReq);
   console.log("Caching page", pageResponse);
 
   if (!pageResponse.ok) {
     return;
   }
 
-  const links = extractLinks(await pageResponse.clone().text());  
-  const uniqueLinks = [...new Set(links)];  
+  const links = extractLinks(await pageResponse.clone().text());
+  const uniqueLinks = [...new Set(links)];
 
   await cache.addAll(uniqueLinks);
   await cache.put(pageReq, pageResponse);
-} 
- 
+}
+
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open("appshell" + VERSION);
- 
-      await cache.addAll(APPSHELL_FILES).catch((e) => console.error("Failed to cache links", e));
 
-    })(),
+      await cache.addAll(APPSHELL_FILES).catch((e) => console.error("Failed to cache links", e)),
+      cacheProjectImages(),
+      cacheCompleteNextPage("/offline/project"),
+      cacheCompleteNextPage("/")
 
-    //cacheProjectImages()
-    cacheCompleteNextPage("/offline/project"),
-    cacheCompleteNextPage("/"),
+    })(), 
   );
 });

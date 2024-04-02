@@ -6,8 +6,8 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { ProjectT } from "@/app/page";
 import Image from "next/image"; 
 import ProjectPage from "@/components/ProjectPage";
-import ScrollScaleComponent from "@/components/ScrollComponent";
-
+import ScrolProgessComponent from "@/components/ScrollProgessComponent";
+ 
 export default function Page({
     params: { slug },
 }: {
@@ -18,15 +18,14 @@ export default function Page({
     useEffect(() => {
         getProject(slug).then((data) => {
             setProject(data);
-        }
-        );
+        });
     }, []);
 
-     
+    if (!project) return ( <div className="flex justify-center items-center h-screen">No project found...</div> )
 
     return <>
     {project && ( 
-     <><ScrollScaleComponent /><ProjectPage {...project} /></>
+     <><ScrolProgessComponent /><ProjectPage {...project} /></>
     )}
     </>
 }

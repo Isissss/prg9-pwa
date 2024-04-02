@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-function ScrollScaleComponent() {
+function ScrolProgessComponent() {
   const [scaleX, setScaleX] = useState(0);
   const ref = useRef(null);
 
@@ -25,4 +25,4 @@ function ScrollScaleComponent() {
   );
 }
 
-export default ScrollScaleComponent;
+export default ScrolProgessComponent;
