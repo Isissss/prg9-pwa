@@ -4,6 +4,7 @@ const deleteCache = async (key) => {
   await caches.delete(key);
 };
 const VERSION = "v2";
+const IMAGEVERSION = "v1";
 
 const APPSHELL_FILES = [
   "/",
@@ -12,7 +13,7 @@ const APPSHELL_FILES = [
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      const cacheKeepList = ["appshell" + VERSION, "project-images" + VERSION];
+      const cacheKeepList = ["appshell" + VERSION, "project-images" + IMAGEVERSION];
       const keyList = await caches.keys();
       const cachesToDelete = keyList.filter((key) => !cacheKeepList.includes(key));
       await Promise.all(cachesToDelete.map(deleteCache));
@@ -56,7 +57,7 @@ const handleFetchRequest = (e) => {
 const cacheProjectImages = async () => {
   // open cache with project-images 
   try {
-    const cache = await caches.open("project-images" + VERSION);
+    const cache = await caches.open("project-images" + IMAGEVERSION);
     const response = await fetch('https://cmgt.hr.nl/api/projects')
     const data = await response.json()
     const projects = data.data
@@ -87,7 +88,7 @@ const handleProjectImageFetchRequest = (e) => {
         }
 
         const response = await fetch(e.request);
-        const cache = await caches.open("project-images" + VERSION);
+        const cache = await caches.open("project-images" + IMAGEVERSION);
         cache.put("/api/img?url=" + e.request.url, response.clone());
         return response;
       } catch (e) {
