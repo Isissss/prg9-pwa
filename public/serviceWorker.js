@@ -62,12 +62,12 @@ const cacheProjectImages = async () => {
     const projects = data.data
 
     const images = projects?.map(({ project }) => {
-      let images = [] 
-     
-     // proxy the images through the backend because of CORS
-     project?.screenshots?.forEach(screenshot => images.push(new Request("/api/img?url=" + screenshot)))
-      return images 
-    }) ?? []  
+      let images = []
+
+      // proxy the images through the backend because of CORS
+      project?.screenshots?.forEach(screenshot => images.push(new Request("/api/img?url=" + screenshot)))
+      return images
+    }) ?? []
     console.log(images.flat())
 
     await cache.addAll(images.flat())
@@ -154,6 +154,7 @@ const handleProjectsFetchRequest = (e) => {
 
 
 function extractLinks(htmlString) {
+  // from GPT 
   const regexPattern = /(?:<script[^>]+src|<link[^>]+href)="([^"]+)"/g;
   let matches;
   const links = [];
@@ -217,10 +218,10 @@ self.addEventListener("install", (event) => {
       const cache = await caches.open("appshell" + VERSION);
 
       await cache.addAll(APPSHELL_FILES).catch((e) => console.error("Failed to cache links", e)),
-      cacheProjectImages(),
-      cacheCompleteNextPage("/offline/project"),
-      cacheCompleteNextPage("/")
+        cacheProjectImages(),
+        cacheCompleteNextPage("/offline/project"),
+        cacheCompleteNextPage("/")
 
-    })(), 
+    })(),
   );
 });
