@@ -204,10 +204,10 @@ async function cacheCompleteNextPage(page) {
     return;
   }
 
-  // const links = extractLinks(await pageResponse.clone().text());
-  // const uniqueLinks = [...new Set(links)];
+  const links = extractLinks(await pageResponse.clone().text());
+  const uniqueLinks = [...new Set(links)];
 
-  // await cache.addAll(uniqueLinks);
+  await cache.addAll(uniqueLinks);
   await cache.put(pageReq, pageResponse);
 }
 
