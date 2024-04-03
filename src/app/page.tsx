@@ -56,9 +56,6 @@ export default function Home() {
 
       setProjects(sortedProjects);
 
-      data.forEach((project: ProjectT) => {
-        localForage.setItem(project.project.slug, project)
-      });
     })
 
   }, []);
